@@ -1,7 +1,5 @@
 ﻿#pragma once
-#include <iostream>
-#include <vector>
-#include <string>
+
 #include "../Types/types.h"
 #include "../NetworkTypes/NetworkingTypes.h"
 
@@ -27,11 +25,11 @@ namespace Net
 		~TCPServer();
 
 	private:
-		socket_t serverSocket;
-		socket_t clientSocket;
-		sockaddr_in serverAddress;
-		sockaddr_in clientAddress;
-		std::string ip;
-		i16 port;
+		socket_t m_serverSocket;
+		socket_t m_clientSocket;
+		sockaddr_in m_serverAddress;
+		sockaddr_in m_clientAddress;
+		std::string m_ip;
+		i16 m_port;
 	};
 }
