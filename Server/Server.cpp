@@ -5,10 +5,9 @@
 
 int main()
 {
-	std::cout << "Kur";
-	/*
+	
 		App app;
 		app.Run();
-	*/
+	
 	return 0;
 }

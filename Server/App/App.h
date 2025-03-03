@@ -5,6 +5,6 @@ struct App
 public:
 	void Run();
 private:
-	TCPServer server = { "127.0.0.1", 8080 };
+	Net::TCPServer server = { "127.0.0.1", 8080 };
 };
 
