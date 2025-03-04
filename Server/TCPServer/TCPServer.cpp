@@ -18,18 +18,21 @@ Net::TCPServer::TCPServer(TCPServer&& other) noexcept
 
 void Net::TCPServer::Init()
 {
+	try {
 #if _WIN32
-	if (InitWinSocket())
-	{
-
-	}
+		InitWinSocket();
 #endif
-	InitServerSocket();
-	InitServerAddress();
-	InitListener();
-	InitClientSocket();
-	ReceiveBytes();
-	ReceiveResponse();
+		CreateSocket();
+		BindSocket();
+		ListenToPort();
+		AcceptConnections();
+		Receive();
+		Send();
+	}
+	catch (const std::exception& e)
+	{
+		std::cout << e.what() << std::endl;
+	}
 }
 
 i32 Net::TCPServer::InitWinSocket()
@@ -46,7 +49,7 @@ i32 Net::TCPServer::InitWinSocket()
 	return 1;
 }
 
-i32 Net::TCPServer::InitServerSocket()
+i32 Net::TCPServer::CreateSocket()
 {
 	m_serverSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (m_serverSocket == INVALID_SOCKET)
@@ -57,7 +60,7 @@ i32 Net::TCPServer::InitServerSocket()
 	return 1;
 }
 
-i32 Net::TCPServer::InitClientSocket()
+i32 Net::TCPServer::AcceptConnections()
 {
 	i32 clientAddrLen = sizeof(m_clientAddress);
 	m_clientSocket = accept(m_serverSocket, reinterpret_cast<sockaddr*>(&m_clientAddress), &clientAddrLen);
@@ -72,7 +75,7 @@ i32 Net::TCPServer::InitClientSocket()
 	return 1;
 }
 
-i32 Net::TCPServer::InitServerAddress()
+i32 Net::TCPServer::BindSocket()
 {
 	m_serverAddress.sin_family = AF_INET;
 	m_serverAddress.sin_port = htons(8080);
@@ -92,7 +95,7 @@ i32 Net::TCPServer::InitServerAddress()
 	return 1;
 }
 
-i32 Net::TCPServer::InitListener()
+i32 Net::TCPServer::ListenToPort()
 {
 	int listenResult = listen(m_serverSocket, SOMAXCONN);
 	if (listenResult == SOCKET_ERROR)
@@ -107,7 +110,7 @@ i32 Net::TCPServer::InitListener()
 
 }
 
-i32 Net::TCPServer::ReceiveBytes()
+i32 Net::TCPServer::Receive()
 {
 	constexpr size_t bufferSize = 512;
 	std::vector<char> buffer;
@@ -121,7 +124,7 @@ i32 Net::TCPServer::ReceiveBytes()
 	return 1;
 }
 
-i32 Net::TCPServer::ReceiveResponse()
+i32 Net::TCPServer::Send()
 {
 	const std::string response = "Hello from server";
 	int sendRes = send(m_clientSocket, response.c_str(), response.size(), 0);

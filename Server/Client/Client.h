@@ -1,5 +1,5 @@
 #pragma once
-#include "../NetworkTypes/NetworkingTypes.h"
+#include "../Networking/NetworkingTypes.h"
 #include "../Types/types.h"
 namespace Net
 {

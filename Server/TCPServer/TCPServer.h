@@ -1,12 +1,11 @@
 ﻿#pragma once
 
-#include "../Types/types.h"
-#include "../NetworkTypes/NetworkingTypes.h"
-
+#include "../Networking/NetworkingTypes.h"
+#include "../Networking/Socket.h"
 namespace Net
 {
 
-	class TCPServer
+	class TCPServer : public Socket
 	{
 	public:
 		TCPServer(const std::string& address, i16 port) noexcept;
@@ -14,15 +13,15 @@ namespace Net
 		TCPServer(TCPServer&& other) noexcept;
 		void Init();
 #if _WIN32
-		[[nodiscard]] i32 InitWinSocket();
+		 i32 InitWinSocket();
 #endif
-		[[nodiscard]] i32 InitServerSocket();
-		[[nodiscard]] i32 InitClientSocket();
-		[[nodiscard]] i32 InitServerAddress();
-		[[nodiscard]] i32 InitListener();
-		[[nodiscard]] i32 ReceiveBytes();
-		[[nodiscard]] i32 ReceiveResponse();
-		~TCPServer();
+		 i32 CreateSocket() override;
+		 i32 AcceptConnections();
+		 i32 BindSocket();
+		 i32 ListenToPort();
+		 i32 Receive() override;
+		 i32 Send();
+		virtual ~TCPServer();
 
 	private:
 		socket_t m_serverSocket;

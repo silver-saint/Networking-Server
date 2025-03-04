@@ -1,7 +1,7 @@
 #include "Client.h"
 
 Net::Client::Client(const std::string& address, i16 port) noexcept
-	: m_socket {0}, 
+	: m_socket {INVALID_SOCKET}, 
 	  m_ip {address},
 	  m_port{port} {}
 
@@ -13,7 +13,8 @@ Net::Client::Client(Client&& other) noexcept
 
 void Net::Client::Init()
 {
-	return;
+	Connect();
+
 }
 
 i32 Net::Client::Connect()
