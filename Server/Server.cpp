@@ -6,8 +6,8 @@
 int main()
 {
 	
-		App app;
-		app.Run();
+		Server server;
+		server.Run();
 	
 	return 0;
 }

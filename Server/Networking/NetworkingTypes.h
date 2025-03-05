@@ -3,6 +3,8 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <exception>
+#include <array>
 #include "../Types/types.h"
 #ifdef _WIN32
 #ifndef WIN32_LEAN_AND_MEAN

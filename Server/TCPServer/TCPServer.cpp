@@ -1,10 +1,10 @@
 #include "TCPServer.h"
 
 Net::TCPServer::TCPServer(const std::string& address, i16 port) noexcept
-	: m_serverSocket{0},
-	  m_clientSocket{0}, 
-	  m_serverAddress{0}, 
-	  m_clientAddress{0}, 
+	: m_serverSocket{INVALID_SOCKET},
+	  m_clientSocket{INVALID_SOCKET}, 
+	  m_serverAddress{}, 
+	  m_clientAddress{}, 
 	  m_ip{address}, 
 	  m_port{port} {}
 
@@ -26,8 +26,8 @@ void Net::TCPServer::Init()
 		BindSocket();
 		ListenToPort();
 		AcceptConnections();
-		Receive();
 		Send();
+		Receive();
 	}
 	catch (const std::exception& e)
 	{
@@ -42,7 +42,7 @@ i32 Net::TCPServer::InitWinSocket()
 	if (Result != 0)
 	{
 		std::cout << "WSAStartup failed: " << Result << '\n';
-		return -1;
+		throw std::runtime_error("Failed to init WinSockets");
 	}
 	std::cout << "Winsock initialized.\n";
 	std::wcout << "Current version: " << LOBYTE(wsaData.wVersion) << "." << HIBYTE(wsaData.wVersion) << std::endl;
@@ -54,8 +54,8 @@ i32 Net::TCPServer::CreateSocket()
 	m_serverSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (m_serverSocket == INVALID_SOCKET)
 	{
-		std::cout << "Socket creation failed: " << WSAGetLastError() << '\n';
-		return -1;
+		std::cout << "Error code: " << WSAGetLastError() << '\n';
+		throw std::runtime_error("Socket creation failed");
 	}
 	return 1;
 }
@@ -66,9 +66,7 @@ i32 Net::TCPServer::AcceptConnections()
 	m_clientSocket = accept(m_serverSocket, reinterpret_cast<sockaddr*>(&m_clientAddress), &clientAddrLen);
 	if (m_clientSocket == SOCKET_ERROR)
 	{
-		std::cout << "Accept failed\n";
-		Net::close(m_serverSocket);
-		return -1;
+		throw std::runtime_error("Accept Failed\n");
 	}
 	std::cout << "Client connected.\n";
 
@@ -78,19 +76,16 @@ i32 Net::TCPServer::AcceptConnections()
 i32 Net::TCPServer::BindSocket()
 {
 	m_serverAddress.sin_family = AF_INET;
-	m_serverAddress.sin_port = htons(8080);
-	int bindAddressResult = inet_pton(AF_INET, m_ip.c_str(), &m_serverAddress.sin_addr);
+	m_serverAddress.sin_port = htons(m_port);
+	i32 bindAddressResult = inet_pton(AF_INET, m_ip.c_str(), &m_serverAddress.sin_addr);
 	if (bindAddressResult == SOCKET_ERROR)
 	{
-		std::cout << "binding inet_pton Failed\n";
-		return -1;
+		throw std::runtime_error("binding inet_pton Failed\n");
 	}
-	int bindResult = bind(m_serverSocket, reinterpret_cast<sockaddr*>(&m_serverAddress), sizeof(m_serverAddress));
+	i32 bindResult = bind(m_serverSocket, reinterpret_cast<sockaddr*>(&m_serverAddress), sizeof(m_serverAddress));
 	if (bindResult == SOCKET_ERROR)
 	{
-		std::cout << "Bind failed\n";
-		Net::close(m_serverSocket);
-		return -1;
+		throw std::runtime_error("Bind failed\n");
 	}
 	return 1;
 }
@@ -100,9 +95,7 @@ i32 Net::TCPServer::ListenToPort()
 	int listenResult = listen(m_serverSocket, SOMAXCONN);
 	if (listenResult == SOCKET_ERROR)
 	{
-		std::cout << "Listen failed\n";
-		closesocket(m_serverSocket);
-		return -1;
+		throw std::runtime_error("Listening failed\n");
 	}
 	std::cout <<"Server is listening on port " << m_serverAddress.sin_port << "...\n";
 
@@ -112,27 +105,24 @@ i32 Net::TCPServer::ListenToPort()
 
 i32 Net::TCPServer::Receive()
 {
-	constexpr size_t bufferSize = 512;
-	std::vector<char> buffer;
-	buffer.reserve(bufferSize);
-	i32 bytesReceived = recv(m_clientSocket, buffer.data(), sizeof(buffer), 0);
+	constexpr size_t bufferSize = 1024;
+	std::vector<char> buffer(bufferSize);
+	i32 bytesReceived = recv(m_serverSocket, buffer.data(), buffer.size(), 0);
 	if (bytesReceived <= 0) {
-		return -1;
+		throw std::runtime_error("Couldn't receive buffer\n");
 	}
-	buffer[bytesReceived] = '\0';  // Null-terminate the received data
-	std::cout << "Received from client: " << buffer.data() << '\n';
+	buffer.resize(bytesReceived);
+	std::cout << "Received from Client: " << std::string(buffer.begin(), buffer.end()) << '\n';
 	return 1;
 }
 
 i32 Net::TCPServer::Send()
 {
-	const std::string response = "Hello from server";
-	int sendRes = send(m_clientSocket, response.c_str(), response.size(), 0);
+	std::string res = "Hello from Server";
+	i32 sendRes = send(m_serverSocket, res.c_str(), res.length(), 0);
 	if (sendRes == SOCKET_ERROR)
 	{
-		std::cout << "Failed to send response!\n";
-		Net::close(m_serverSocket);
-		return -1;
+		throw std::runtime_error("Failed to send response!\n");
 	}
 	return 1;
 }

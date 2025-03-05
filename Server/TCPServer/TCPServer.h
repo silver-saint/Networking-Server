@@ -20,7 +20,7 @@ namespace Net
 		 i32 BindSocket();
 		 i32 ListenToPort();
 		 i32 Receive() override;
-		 i32 Send();
+		 i32 Send() override;
 		virtual ~TCPServer();
 
 	private:
